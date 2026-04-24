@@ -74,21 +74,23 @@ Liver, Lung-L, Lung-R, Pancreas, Spleen
 ```
 .
 ├── coursework_1.ipynb     # Main submission notebook (all 7 questions)
-├── visualisations.ipynb   # Supplementary visualisation drafts
-├── CLAUDE.md              # Module brief & grading rubric
-├── README.md              # This file
-└── (excluded from git, see .gitignore)
-    ├── organsmnist_128.npz  # Dataset (~305 MB)
-    ├── model_q1.keras       # Saved models (excluded: > 100 MB total)
-    ├── model_q2.keras
-    ├── model_q3.keras
-    ├── model_q4.keras
-    ├── model_q5a.keras      # DenseNet121 (frozen)
-    ├── model_q5b.keras      # VGG16 (frozen)
-    └── model_q7.keras       # Augmented DenseNet121
+└── README.md              # This file
 ```
 
-> **Note on large files.** The dataset `.npz` (~305 MB) and the trained `.keras` model files (one of them ~102 MB) exceed GitHub's 100 MB single-file limit and together would bloat the repo unnecessarily. They are excluded from the repository via `.gitignore`. Re-running the notebook regenerates them locally.
+The following files are kept locally (not committed) — re-running the notebook regenerates them:
+
+```
+organsmnist_128.npz   # Dataset (~305 MB)
+model_q1.keras        # Saved models (one is > 100 MB)
+model_q2.keras
+model_q3.keras
+model_q4.keras
+model_q5a.keras       # DenseNet121 (frozen)
+model_q5b.keras       # VGG16 (frozen)
+model_q7.keras        # Augmented DenseNet121
+```
+
+> **Note on large files.** The dataset `.npz` (~305 MB) and the trained `.keras` model files (one of them ~102 MB) exceed GitHub's 100 MB single-file limit and together would bloat the repo unnecessarily, so they are not committed.
 
 ---
 
