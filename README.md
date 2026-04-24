@@ -1,6 +1,4 @@
 # Deep Learning MSc Coursework 2: OrganSMNIST Multi-Class Classification
-
-> **Module:** CI7521 — Machine Learning & Deep Learning
 > **Programme:** MSc Data Science, Kingston University
 
 A deep-learning pipeline that classifies 2D abdominal CT slices from the **OrganSMNIST** dataset into 11 organ classes. The project progresses from a minimal fully-connected baseline all the way to ImageNet-pretrained transfer learning and class-imbalance-aware augmentation, with a final head-to-head comparative study on a held-out test set.
