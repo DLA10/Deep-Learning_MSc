@@ -135,7 +135,7 @@ The notebook opens with three diagnostic plots: class distribution across splits
 
 Adam, sparse categorical cross-entropy, batch size 128, 20 epochs with `EarlyStopping(patience=5)`.
 
-**Result:** best validation accuracy **64.44 %**. Train/val curves stay tightly coupled around 60–62 %, confirming **under-fitting** (capacity limited), not over-fitting. A single dense layer on raw pixels has no notion of spatial structure.
+**Result:** best validation accuracy **64.48 %**. Train/val curves stay tightly coupled around 60–62 %, confirming **under-fitting** (capacity limited), not over-fitting. A single dense layer on raw pixels has no notion of spatial structure.
 
 ### Q2: Improved Neural Network
 
@@ -180,10 +180,10 @@ grayscale → replicate to 3-channels → pretrained base (frozen)
 → GlobalAveragePooling → Dense(256, relu) → Dropout(0.3) → Dense(11, softmax)
 ```
 
-| Backbone | Val Acc | Val Loss | Epochs |
+| Backbone | Val Acc | Val Loss | Epochs trained (best) |
 |---|---|---|---|
-| **DenseNet121** | **0.8793** | 0.3009 | 9 (best epoch) |
-| VGG16 | 0.8597 | 0.3432 | 9 (best epoch) |
+| **DenseNet121** | **0.8793** | 0.3009 | 9 (best at epoch 6) |
+| VGG16 | 0.8597 | 0.3432 | 9 (best at epoch 6) |
 
 DenseNet's dense connectivity encourages feature reuse across depths, which pays off here even with a frozen base.
 
@@ -270,11 +270,11 @@ Starting from Q5a (DenseNet121), two techniques are added:
 
 | Metric | Q1 | Q2 | Q3 | Q4 | Q5a (DenseNet) | Q5b (VGG) | Q7 (Aug) |
 |---|---|---|---|---|---|---|---|
-| Val Acc (best) | 0.6444 | 0.7537 | 0.619 | 0.8740 | 0.8793 | 0.8597 | ≈0.88 |
+| Val Acc (best) | 0.6448 | 0.7537 | 0.619 | 0.8740 | 0.8793 | 0.8597 | ≈0.88 |
 | Test Acc | 0.4830 | 0.5329 | 0.5532 | 0.7554 | **0.7529** | 0.7358 | 0.7529 |
 | Test F1 (macro) | 0.4312 | 0.5027 | 0.4286 | 0.6864 | **0.7037** | 0.6727 | 0.7042 |
 | Test Recall (macro) | 0.4389 | 0.5228 | 0.4430 | 0.7053 | 0.7061 | 0.6772 | **0.7078** |
-| Params (trainable) | 1.64 M | 25.7 M | 3.1 K | ~370 K | ~265 K (head only) | ~265 K (head only) | ~265 K (head only) |
+| Params (trainable) | 1.64 M | 8.56 M | 3.1 K | ~405 K | ~265 K (head only) | ~134 K (head only) | ~265 K (head only) |
 
 **Selected best model:** **Q5a DenseNet121 + augmentation + soft class weights (Q7).** Highest balanced performance across 11 classes.
 
@@ -283,7 +283,7 @@ Starting from Q5a (DenseNet121), two techniques are added:
 ## Key Findings
 
 1. **Spatial structure matters more than raw capacity.** A 3.1 K-param conv baseline (Q3) nearly matches a 1.6 M-param MLP (Q1), and a well-tuned 3-block CNN (Q4) crushes the deepest MLP by ~22 pp on test accuracy.
-2. **Transfer learning is competitive without fine-tuning.** Frozen DenseNet121 with only a small head trained reaches best balanced performance, using ~1/6 the trainable parameters of Q4.
+2. **Transfer learning is competitive without fine-tuning.** Frozen DenseNet121 with only a small head trained reaches best balanced performance, using ~65 % the trainable parameters of Q4 (~265 K vs ~405 K).
 3. **Accuracy is the wrong headline metric here.** Q4 leads on accuracy but DenseNet121 leads on macro F1, the right call on a 5.6× imbalanced dataset.
 4. **Left/right organ pairs are the dominant failure mode.** In sagittal CT, Kidney-L vs Kidney-R and Femur-L vs Femur-R differ mainly by position in the scan, which a frozen ImageNet backbone has no built-in prior for.
 5. **Augmentation + soft class weights trade off rather than improve globally.** Femur-R improves +6.3 pp F1, but Femur-L drops −8.3 pp. The total macro F1 change is marginal (+0.0005); gains come from **rebalancing**, not from new information.
