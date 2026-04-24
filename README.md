@@ -1,4 +1,4 @@
-# Deep Learning MSc — Coursework 2: OrganSMNIST Multi-Class Classification
+# Deep Learning MSc Coursework 2: OrganSMNIST Multi-Class Classification
 
 > **Module:** CI7521 — Machine Learning & Deep Learning
 > **Programme:** MSc Data Science, Kingston University
