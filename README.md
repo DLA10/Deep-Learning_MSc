@@ -14,13 +14,13 @@ A deep-learning pipeline that classifies 2D abdominal CT slices from the **Organ
 5. [How to Run](#how-to-run)
 6. [Pipeline Summary](#pipeline-summary)
    - [Initial Visualisation](#initial-visualisation)
-   - [Q1 — Baseline Neural Network](#q1--baseline-neural-network)
-   - [Q2 — Improved Neural Network](#q2--improved-neural-network)
-   - [Q3 — Baseline CNN](#q3--baseline-cnn)
-   - [Q4 — Improved CNN](#q4--improved-cnn)
-   - [Q5 — Transfer Learning](#q5--transfer-learning)
-   - [Q6 — Test Set Evaluation](#q6--test-set-evaluation-comparative-study)
-   - [Q7 — Data Augmentation & Class Imbalance](#q7--data-augmentation--class-imbalance)
+   - [Q1: Baseline Neural Network](#q1-baseline-neural-network)
+   - [Q2: Improved Neural Network](#q2-improved-neural-network)
+   - [Q3: Baseline CNN](#q3-baseline-cnn)
+   - [Q4: Improved CNN](#q4-improved-cnn)
+   - [Q5: Transfer Learning](#q5-transfer-learning)
+   - [Q6: Test Set Evaluation](#q6-test-set-evaluation-comparative-study)
+   - [Q7: Data Augmentation & Class Imbalance](#q7-data-augmentation--class-imbalance)
 7. [Final Results Snapshot](#final-results-snapshot)
 8. [Key Findings](#key-findings)
 9. [Limitations & Future Work](#limitations--future-work)
@@ -48,7 +48,7 @@ Everything is implemented in TensorFlow/Keras in a single notebook (`coursework_
 
 ## Dataset
 
-**OrganSMNIST** is part of the **MedMNIST v2** benchmark (Yang et al., 2023). It is derived from the Liver Tumor Segmentation Benchmark (LiTS) — 2D sagittal slices of abdominal CT volumes, re-sampled to 128×128 grayscale. There are **11 classes**:
+**OrganSMNIST** is part of the **MedMNIST v2** benchmark (Yang et al., 2023). It is derived from the Liver Tumor Segmentation Benchmark (LiTS), with 2D sagittal slices of abdominal CT volumes re-sampled to 128×128 grayscale. There are **11 classes**:
 
 ```
 Bladder, Femur-L, Femur-R, Heart, Kidney-L, Kidney-R,
@@ -63,9 +63,9 @@ Liver, Lung-L, Lung-R, Pancreas, Spleen
 | Validation | 2,452 | (N, 128, 128, 1) |
 | Test | 8,827 | (N, 128, 128, 1) |
 
-**Class imbalance is significant.** Liver contributes ~24.9 % of training images (3,464), while Femur-R contributes only ~4.4 % (614) — a **5.6× skew** between the largest and smallest class. This is the main driver behind the design choices in Q7.
+**Class imbalance is significant.** Liver contributes ~24.9 % of training images (3,464), while Femur-R contributes only ~4.4 % (614), a **5.6× skew** between the largest and smallest class. This is the main driver behind the design choices in Q7.
 
-**Preprocessing applied** — pixel normalisation to `[0.0, 1.0]` and expansion of the channel axis to `(128, 128, 1)` so Keras `Conv2D` layers accept the input.
+**Preprocessing applied:** pixel normalisation to `[0.0, 1.0]` and expansion of the channel axis to `(128, 128, 1)` so Keras `Conv2D` layers accept the input.
 
 ---
 
@@ -77,7 +77,7 @@ Liver, Lung-L, Lung-R, Pancreas, Spleen
 └── README.md              # This file
 ```
 
-The following files are kept locally (not committed) — re-running the notebook regenerates them:
+The following files are kept locally (not committed). Re-running the notebook regenerates them:
 
 ```
 organsmnist_128.npz   # Dataset (~305 MB)
@@ -98,7 +98,7 @@ model_q7.keras        # Augmented DenseNet121
 
 - **Python:** 3.11
 - **Core libraries:** `tensorflow` (2.x, Keras 3), `numpy`, `pandas`, `matplotlib`, `seaborn`, `scikit-learn`
-- **Platform:** Windows 11. TensorFlow on native Windows does **not** use the GPU for TF ≥ 2.11 — training was run on CPU. Use WSL2 or TensorFlow-DirectML if you need GPU.
+- **Platform:** Windows 11. TensorFlow on native Windows does **not** use the GPU for TF ≥ 2.11, so training was run on CPU. Use WSL2 or TensorFlow-DirectML if you need GPU.
 
 ```bash
 pip install tensorflow numpy pandas matplotlib seaborn scikit-learn
@@ -113,9 +113,9 @@ Place `organsmnist_128.npz` in the same folder as the notebook before running.
 1. Download `organsmnist_128.npz` from MedMNIST v2 (or request it from the authors) and drop it in this folder.
 2. Open `coursework_1.ipynb` in Jupyter / VS Code.
 3. Run the cells **in order**. Q1–Q5 will each save a `.keras` file; Q6 loads all six for test-set evaluation.
-4. Q7 retrains the best model (DenseNet121) with augmentation and soft class weights — it is the longest cell and was run separately.
+4. Q7 retrains the best model (DenseNet121) with augmentation and soft class weights. It is the longest cell and was run separately.
 
-> Training is slow on CPU. Q5 and Q7 each take ~15–30 min per model depending on hardware. Because training was already run once, the notebook is shipped with **all outputs preserved** — you can read the metrics without executing anything.
+> Training is slow on CPU. Q5 and Q7 each take ~15–30 min per model depending on hardware. Because training was already run once, the notebook is shipped with **all outputs preserved**, so you can read the metrics without executing anything.
 
 ---
 
@@ -127,9 +127,9 @@ The notebook opens with three diagnostic plots: class distribution across splits
 
 - **Class imbalance is 5.6×** between Liver and Femur-R.
 - **Left/right pairs** (Kidney-L vs Kidney-R, Femur-L vs Femur-R, Lung-L vs Lung-R) are near-mirror images, which becomes the hardest failure mode downstream.
-- **Pixel intensities are heavily skewed toward 0** — typical CT appearance — so models mostly discriminate in the low-intensity range.
+- **Pixel intensities are heavily skewed toward 0** (typical CT appearance), so models mostly discriminate in the low-intensity range.
 
-### Q1 — Baseline Neural Network
+### Q1: Baseline Neural Network
 
 `Flatten(128×128×1) → Dense(100, relu) → Dense(11, softmax)`
 
@@ -137,7 +137,7 @@ Adam, sparse categorical cross-entropy, batch size 128, 20 epochs with `EarlySto
 
 **Result:** best validation accuracy **64.44 %**. Train/val curves stay tightly coupled around 60–62 %, confirming **under-fitting** (capacity limited), not over-fitting. A single dense layer on raw pixels has no notion of spatial structure.
 
-### Q2 — Improved Neural Network
+### Q2: Improved Neural Network
 
 Five MLP trials varying depth, width, dropout, batch-normalisation, and learning rate:
 
@@ -149,15 +149,15 @@ Five MLP trials varying depth, width, dropout, batch-normalisation, and learning
 | 4 | [256, 128, 64] | 0.3 | ✓ | 0.001 | 0.7011 |
 | 5 | [1024, 512, 256] | 0.4 | ✓ | 0.0003 | 0.6778 |
 
-**Best: Trial 2** — depth 3, moderate dropout, BN, slightly lower LR. Pushing beyond (Trial 3 heavier dropout, Trial 5 much larger with very low LR) under-converges or over-regularises.
+**Best: Trial 2.** Depth 3, moderate dropout, BN, slightly lower LR. Pushing beyond (Trial 3 heavier dropout, Trial 5 much larger with very low LR) under-converges or over-regularises.
 
-### Q3 — Baseline CNN
+### Q3: Baseline CNN
 
 `Conv2D(32, 3×3) → MaxPool(2) → GAP → Dense(64) → Dense(11)` (only **3,147 trainable params**).
 
 **Result:** ~**61.9 %** validation accuracy after the full 20 epochs (early stopping never triggered). One conv block detects edges/gradients but can't compose higher-level organ shapes. Interestingly, the Q1 MLP outperforms this tiny CNN because sheer parameter count (1.6 M vs 3 K) dominates when features are under-developed.
 
-### Q4 — Improved CNN
+### Q4: Improved CNN
 
 Five CNN trials stacking progressively deeper conv blocks:
 
@@ -169,9 +169,9 @@ Five CNN trials stacking progressively deeper conv blocks:
 | **4** | **[64, 128, 256]** | **0.30** | **✓** | **0.001** | **0.8740** |
 | 5 | [32, 64, 128, 256] | 0.30 | ✓ | 0.0005 | 0.8719 |
 
-**Best: Trial 4** — wider filters (64→128→256), BN + moderate dropout. Going deeper (Trial 5, four blocks) gives no further gain, suggesting depth alone is not the bottleneck; capacity per level matters more on 128×128 inputs.
+**Best: Trial 4.** Wider filters (64→128→256), BN + moderate dropout. Going deeper (Trial 5, four blocks) gives no further gain, suggesting depth alone is not the bottleneck; capacity per level matters more on 128×128 inputs.
 
-### Q5 — Transfer Learning
+### Q5: Transfer Learning
 
 Two ImageNet-pretrained backbones, **frozen** (feature extraction, not fine-tuning), with a lightweight head:
 
@@ -187,7 +187,7 @@ grayscale → replicate to 3-channels → pretrained base (frozen)
 
 DenseNet's dense connectivity encourages feature reuse across depths, which pays off here even with a frozen base.
 
-### Q6 — Test Set Evaluation (Comparative Study)
+### Q6: Test Set Evaluation (Comparative Study)
 
 All six best models evaluated on the held-out **test set** (8,827 images):
 
@@ -200,7 +200,7 @@ All six best models evaluated on the held-out **test set** (8,827 images):
 | **Q5a: DenseNet121** | 0.7529 | **0.7037** | 0.7112 | 0.7061 |
 | Q5b: VGG16 | 0.7358 | 0.6727 | 0.7083 | 0.6772 |
 
-**Selection criterion: macro F1** (treats all 11 classes equally — the right metric for a 5.6× imbalanced dataset). **Q5a (DenseNet121) is the winner** at macro F1 = **0.7037**, beating Q4 on balanced performance even though Q4 edges it on raw accuracy by 0.25 pp.
+**Selection criterion: macro F1** (treats all 11 classes equally, the right metric for a 5.6× imbalanced dataset). **Q5a (DenseNet121) is the winner** at macro F1 = **0.7037**, beating Q4 on balanced performance even though Q4 edges it on raw accuracy by 0.25 pp.
 
 **Per-class breakdown of DenseNet121 (test set):**
 
@@ -219,14 +219,14 @@ All six best models evaluated on the held-out **test set** (8,827 images):
 | Spleen | 0.8063 | 0.6364 | 0.7113 | 968 |
 
 - **Best:** Liver (F1 0.97), Lung-L/R (~0.86), Heart (0.84).
-- **Worst:** Femur-R (F1 0.42), Kidney-R (0.45), Femur-L (0.53), Kidney-L (0.53) — **left/right pairs dominate the error mass**, exactly as the initial visualisation predicted.
+- **Worst:** Femur-R (F1 0.42), Kidney-R (0.45), Femur-L (0.53), Kidney-L (0.53). **Left/right pairs dominate the error mass**, exactly as the initial visualisation predicted.
 
-### Q7 — Data Augmentation & Class Imbalance
+### Q7: Data Augmentation & Class Imbalance
 
 Starting from Q5a (DenseNet121), two techniques are added:
 
-1. **Conservative geometric augmentation** — rotation ±5°, zoom ±5 %, shift ±2 %. *No horizontal flip* (would turn Kidney-L into something resembling Kidney-R, worsening the exact confusion we want to fix).
-2. **Soft class weights** (sqrt-dampened) — instead of full inverse-frequency weighting, which can destabilise training, weights are `sqrt(n_max / n_i)` so minority classes get moderate (not extreme) up-weighting:
+1. **Conservative geometric augmentation:** rotation ±5°, zoom ±5 %, shift ±2 %. *No horizontal flip* (would turn Kidney-L into something resembling Kidney-R, worsening the exact confusion we want to fix).
+2. **Soft class weights** (sqrt-dampened). Instead of full inverse-frequency weighting, which can destabilise training, weights are `sqrt(n_max / n_i)` so minority classes get moderate (not extreme) up-weighting:
 
 | Class | Weight | | Class | Weight |
 |---|---|---|---|---|
@@ -246,7 +246,7 @@ Starting from Q5a (DenseNet121), two techniques are added:
 | Precision (macro) | 0.7112 | 0.7092 | −0.0021 |
 | Recall (macro) | 0.7061 | 0.7078 | +0.0017 |
 
-**Per-class F1 change — where the real story is:**
+**Per-class F1 change (where the real story is):**
 
 | Class | Before | After | Δ |
 |---|---|---|---|
@@ -262,7 +262,7 @@ Starting from Q5a (DenseNet121), two techniques are added:
 | Kidney-L | 0.5308 | 0.5214 | −0.0095 |
 | **Femur-L** | 0.5321 | 0.4490 | **−0.0831** |
 
-**The intended rebalancing worked on Femur-R (+6.3 pp)** — the hardest minority class improved substantially. But part of the gain came from redistributing mass away from Femur-L (−8.3 pp), the sibling the model was previously over-predicting. Net macro F1 barely moves (+0.0005), but the class-wise picture is more **balanced**, which is the right outcome for a downstream medical application where rare-class recall matters.
+**The intended rebalancing worked on Femur-R (+6.3 pp).** The hardest minority class improved substantially. But part of the gain came from redistributing mass away from Femur-L (−8.3 pp), the sibling the model was previously over-predicting. Net macro F1 barely moves (+0.0005), but the class-wise picture is more **balanced**, which is the right outcome for a downstream medical application where rare-class recall matters.
 
 ---
 
@@ -276,7 +276,7 @@ Starting from Q5a (DenseNet121), two techniques are added:
 | Test Recall (macro) | 0.4389 | 0.5228 | 0.4430 | 0.7053 | 0.7061 | 0.6772 | **0.7078** |
 | Params (trainable) | 1.64 M | 25.7 M | 3.1 K | ~370 K | ~265 K (head only) | ~265 K (head only) | ~265 K (head only) |
 
-**Selected best model:** **Q5a DenseNet121 + augmentation + soft class weights (Q7)** — highest balanced performance across 11 classes.
+**Selected best model:** **Q5a DenseNet121 + augmentation + soft class weights (Q7).** Highest balanced performance across 11 classes.
 
 ---
 
@@ -284,25 +284,25 @@ Starting from Q5a (DenseNet121), two techniques are added:
 
 1. **Spatial structure matters more than raw capacity.** A 3.1 K-param conv baseline (Q3) nearly matches a 1.6 M-param MLP (Q1), and a well-tuned 3-block CNN (Q4) crushes the deepest MLP by ~22 pp on test accuracy.
 2. **Transfer learning is competitive without fine-tuning.** Frozen DenseNet121 with only a small head trained reaches best balanced performance, using ~1/6 the trainable parameters of Q4.
-3. **Accuracy is the wrong headline metric here.** Q4 leads on accuracy but DenseNet121 leads on macro F1 — the right call on a 5.6× imbalanced dataset.
+3. **Accuracy is the wrong headline metric here.** Q4 leads on accuracy but DenseNet121 leads on macro F1, the right call on a 5.6× imbalanced dataset.
 4. **Left/right organ pairs are the dominant failure mode.** In sagittal CT, Kidney-L vs Kidney-R and Femur-L vs Femur-R differ mainly by position in the scan, which a frozen ImageNet backbone has no built-in prior for.
-5. **Augmentation + soft class weights trade off rather than improve globally.** Femur-R improves +6.3 pp F1, but Femur-L drops −8.3 pp. The total macro F1 change is marginal (+0.0005) — gains come from **rebalancing**, not from new information.
+5. **Augmentation + soft class weights trade off rather than improve globally.** Femur-R improves +6.3 pp F1, but Femur-L drops −8.3 pp. The total macro F1 change is marginal (+0.0005); gains come from **rebalancing**, not from new information.
 
 ---
 
 ## Limitations & Future Work
 
 - **Frozen backbones leave performance on the table.** Progressive unfreezing (e.g. top block of DenseNet) with a very low LR would likely close the gap on the hardest classes.
-- **Left/right disambiguation needs a positional prior** — e.g. a coordinate channel, or explicitly cropping left/right halves of the slice before classification.
+- **Left/right disambiguation needs a positional prior**, e.g. a coordinate channel, or explicitly cropping left/right halves of the slice before classification.
 - **A specialised loss** (focal loss, class-balanced loss, or per-class threshold tuning) would probably move the needle further than geometric augmentation on imbalance.
 - **Input resolution.** MedMNIST also ships a 224×224 version; re-running the best model at higher resolution would give the pretrained features more signal to work with.
-- **Ensembling Q4 and Q5a** — they disagree in different ways (Q4 stronger on accuracy, Q5a on balance) — a simple probability average would probably beat either alone.
+- **Ensembling Q4 and Q5a:** they disagree in different ways (Q4 stronger on accuracy, Q5a on balance), and a simple probability average would probably beat either alone.
 
 ---
 
 ## References
 
-[1] J. Yang, R. Shi, D. Wei, Z. Liu, L. Zhao, B. Ke, H. Pfister, and B. Ni. **"MedMNIST v2 — A Large-Scale Lightweight Benchmark for 2D and 3D Biomedical Image Classification."** *Scientific Data*, vol. 10, no. 1, p. 41, 2023.
+[1] J. Yang, R. Shi, D. Wei, Z. Liu, L. Zhao, B. Ke, H. Pfister, and B. Ni. **"MedMNIST v2: A Large-Scale Lightweight Benchmark for 2D and 3D Biomedical Image Classification."** *Scientific Data*, vol. 10, no. 1, p. 41, 2023.
 
 [2] M. Abadi *et al.* **"TensorFlow: A System for Large-Scale Machine Learning."** *Proc. OSDI*, 2016.
 
@@ -318,4 +318,4 @@ Starting from Q5a (DenseNet121), two techniques are added:
 
 ---
 
-*Coursework submitted for CI7521 — Machine Learning & Deep Learning, MSc Data Science, Kingston University.*
+*Coursework submitted for CI7521 (Machine Learning & Deep Learning), MSc Data Science, Kingston University.*
